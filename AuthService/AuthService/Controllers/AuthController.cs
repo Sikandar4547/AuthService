@@ -2,6 +2,7 @@
 using AuthService.Models;
 using AuthService.DTOs;
 using Microsoft.AspNetCore.Identity;
+using AuthService.Interfaces;
 
 namespace AuthService.Controllers
 {
@@ -11,40 +12,25 @@ namespace AuthService.Controllers
     {
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
-
-        public AuthController(UserManager<User> userManager, SignInManager<User> signInManager)
+        private readonly IAuthRepository _authRepository;
+        public AuthController(UserManager<User> userManager, SignInManager<User> signInManager,IAuthRepository authRepository)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _authRepository = authRepository;
         }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register(Register dto)
         {
-            var user = new User
-            {
-                UserName = dto.Username,
-                Email = dto.Email,
-                FirstName = dto.FirstName,
-                LastName = dto.LastName
-            };
-
-            var result = await _userManager.CreateAsync(user, dto.Password);
-
-            if (!result.Succeeded)
-                return BadRequest(result.Errors);
-
+            _authRepository.Register(dto);
             return Ok();
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login(Login dto)
         {
-            var result = await _signInManager.PasswordSignInAsync(dto.Username, dto.Password, false, false);
-
-            if (!result.Succeeded)
-                return Unauthorized();
-
+            _authRepository.Login(dto);
             return Ok();
         }
     }
