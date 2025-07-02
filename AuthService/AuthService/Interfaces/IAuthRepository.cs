@@ -4,7 +4,9 @@ namespace AuthService.Interfaces
 {
     public interface IAuthRepository
     {
-        string Register(Register register);
-        string Login(Login login);
+        TokenResponse Register(Register register);
+        TokenResponse Login(Login login);
+        TokenResponse RefreshToken(string refreshToken);
+        Task<bool> ForgetPasswordAsync(string email);
     }
 }
