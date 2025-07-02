@@ -7,7 +7,68 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="obj\Debug\net8.0\.NETCoreApp,Version=v8.0.AssemblyAttributes.cs" />
+    <Compile Include="obj\Debug\net8.0\AuthService.AssemblyInfo.cs" />
+    <Compile Include="obj\Debug\net8.0\AuthService.GlobalUsings.g.cs" />
+    <Compile Include="obj\Debug\net8.0\AuthService.MvcApplicationPartsAssemblyInfo.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="bin\Debug\net8.0\appsettings.Development.json" />
+    <Content Include="bin\Debug\net8.0\appsettings.json" />
+    <Content Include="bin\Debug\net8.0\AuthService.deps.json" />
+    <Content Include="bin\Debug\net8.0\AuthService.runtimeconfig.json" />
+    <Content Include="bin\Debug\net8.0\AuthService.staticwebassets.endpoints.json" />
+    <Content Include="obj\AuthService.csproj.nuget.dgspec.json" />
+    <Content Include="obj\Debug\net8.0\ApiEndpoints.json" />
+    <Content Include="obj\Debug\net8.0\AuthService.csproj.FileListAbsolute.txt" />
+    <Content Include="obj\Debug\net8.0\EndpointInfo\AuthService.json" />
+    <Content Include="obj\Debug\net8.0\rjsmcshtml.dswa.cache.json" />
+    <Content Include="obj\Debug\net8.0\rjsmrazor.dswa.cache.json" />
+    <Content Include="obj\Debug\net8.0\rpswa.dswa.cache.json" />
+    <Content Include="obj\Debug\net8.0\staticwebassets.build.endpoints.json" />
+    <Content Include="obj\Debug\net8.0\staticwebassets.build.json" />
+    <Content Include="obj\Debug\net8.0\staticwebassets.references.upToDateCheck.txt" />
+    <Content Include="obj\Debug\net8.0\staticwebassets.removed.txt" />
+    <Content Include="obj\project.assets.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="obj\Debug\net8.0\staticwebassets\" />
+    <Folder Include="Services\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="bin\Debug\net8.0\AuthService.dll" />
+    <None Include="bin\Debug\net8.0\AuthService.exe" />
+    <None Include="bin\Debug\net8.0\AuthService.pdb" />
+    <None Include="bin\Debug\net8.0\Microsoft.OpenApi.dll" />
+    <None Include="bin\Debug\net8.0\Swashbuckle.AspNetCore.Swagger.dll" />
+    <None Include="bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerGen.dll" />
+    <None Include="bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerUI.dll" />
+    <None Include="obj\AuthService.csproj.nuget.g.props" />
+    <None Include="obj\AuthService.csproj.nuget.g.targets" />
+    <None Include="obj\Debug\net8.0\apphost.exe" />
+    <None Include="obj\Debug\net8.0\AuthServ.2ED0AEC6.Up2Date" />
+    <None Include="obj\Debug\net8.0\AuthService.AssemblyInfoInputs.cache" />
+    <None Include="obj\Debug\net8.0\AuthService.assets.cache" />
+    <None Include="obj\Debug\net8.0\AuthService.csproj.AssemblyReference.cache" />
+    <None Include="obj\Debug\net8.0\AuthService.csproj.BuildWithSkipAnalyzers" />
+    <None Include="obj\Debug\net8.0\AuthService.csproj.CoreCompileInputs.cache" />
+    <None Include="obj\Debug\net8.0\AuthService.dll" />
+    <None Include="obj\Debug\net8.0\AuthService.GeneratedMSBuildEditorConfig.editorconfig" />
+    <None Include="obj\Debug\net8.0\AuthService.genruntimeconfig.cache" />
+    <None Include="obj\Debug\net8.0\AuthService.MvcApplicationPartsAssemblyInfo.cache" />
+    <None Include="obj\Debug\net8.0\AuthService.pdb" />
+    <None Include="obj\Debug\net8.0\EndpointInfo\AuthService.OpenApiFiles.cache" />
+    <None Include="obj\Debug\net8.0\refint\AuthService.dll" />
+    <None Include="obj\Debug\net8.0\ref\AuthService.dll" />
+    <None Include="obj\Debug\net8.0\staticwebassets.build.json.cache" />
+    <None Include="obj\project.nuget.cache" />
   </ItemGroup>
 
 </Project>

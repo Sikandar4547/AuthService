@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Development\\SampleProjects\\Microservices Architecture\\AuthService\\AuthService\\AuthService.csproj": {}
+    "D:\\Development\\SampleProjects\\MicroservicesArchitecture\\AuthService\\AuthService\\AuthService\\AuthService.csproj": {}
   },
   "projects": {
-    "D:\\Development\\SampleProjects\\Microservices Architecture\\AuthService\\AuthService\\AuthService.csproj": {
+    "D:\\Development\\SampleProjects\\MicroservicesArchitecture\\AuthService\\AuthService\\AuthService\\AuthService.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Development\\SampleProjects\\Microservices Architecture\\AuthService\\AuthService\\AuthService.csproj",
+        "projectUniqueName": "D:\\Development\\SampleProjects\\MicroservicesArchitecture\\AuthService\\AuthService\\AuthService\\AuthService.csproj",
         "projectName": "AuthService",
-        "projectPath": "D:\\Development\\SampleProjects\\Microservices Architecture\\AuthService\\AuthService\\AuthService.csproj",
+        "projectPath": "D:\\Development\\SampleProjects\\MicroservicesArchitecture\\AuthService\\AuthService\\AuthService\\AuthService.csproj",
         "packagesPath": "C:\\Users\\muham\\.nuget\\packages\\",
-        "outputPath": "D:\\Development\\SampleProjects\\Microservices Architecture\\AuthService\\AuthService\\obj\\",
+        "outputPath": "D:\\Development\\SampleProjects\\MicroservicesArchitecture\\AuthService\\AuthService\\AuthService\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
