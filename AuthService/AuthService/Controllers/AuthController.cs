@@ -1,47 +1,67 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using AuthService.DTOs;
+﻿using AuthService.DTOs;
 using AuthService.Interfaces;
+using AuthService.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using RolesBasedAuthentication.Models;
 
 namespace AuthService.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class AuthController : ControllerBase
+    public class AuthController(IAuthRepository authRepository) : ControllerBase
     {
-        private readonly IAuthRepository _authRepository;
-        public AuthController(IAuthRepository authRepository)
-        {
-            _authRepository = authRepository;
-        }
-
         [HttpPost("register")]
-        public async Task<IActionResult> Register(Register dto)
+        public async Task<ActionResult<User>> Register(UserDto request)
         {
-            var tokens = _authRepository.Register(dto);
-            return Ok(tokens);
+            var user = await authRepository.RegisterAsync(request);
+            if (user is null)
+                return BadRequest("Username already exists.");
+
+            return Ok(user);
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(Login dto)
+        public async Task<ActionResult<TokenResponseDto>> Login(UserDto request)
         {
-            var tokens = _authRepository.Login(dto);
-            return Ok(tokens);
+            var result = await authRepository.LoginAsync(request);
+            if (result is null)
+                return BadRequest("Invalid username or password.");
+
+            return Ok(result);
         }
 
         [HttpPost("refresh-token")]
-        public IActionResult RefreshToken([FromBody] string refreshToken)
+        public async Task<ActionResult<TokenResponseDto>> RefreshToken(RefreshTokenRequestDto request)
         {
-            var tokens = _authRepository.RefreshToken(refreshToken);
-            return Ok(tokens);
+            var result = await authRepository.RefreshTokenAsync(request);
+            if (result is null || result.AccessToken is null || result.RefreshToken is null)
+                return Unauthorized("Invalid refresh token.");
+
+            return Ok(result);
         }
 
         [HttpPost("forget-password")]
         public async Task<IActionResult> ForgetPassword([FromBody] string email)
         {
-            var result = await _authRepository.ForgetPasswordAsync(email);
+            var result = await authRepository.ForgetPasswordAsync(email);
             if (!result)
                 return NotFound("User not found");
             return Ok("Password reset instructions sent to your email.");
+        }
+
+        [Authorize]
+        [HttpGet]
+        public IActionResult AuthenticatedOnlyEndpoint()
+        {
+            return Ok("You are authenticated!");
+        }
+
+        [Authorize(Roles = "Admin")] // "Admin,User, etc."
+        [HttpGet("admin-only")]
+        public IActionResult AdminOnlyEndpoint()
+        {
+            return Ok("You are an admin!");
         }
     }
 }
