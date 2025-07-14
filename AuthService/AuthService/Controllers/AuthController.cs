@@ -12,7 +12,7 @@ namespace AuthService.Controllers
     public class AuthController(IAuthRepository authRepository) : ControllerBase
     {
         [HttpPost("register")]
-        public async Task<ActionResult<User>> Register(UserDto request)
+        public async Task<ActionResult<User>> Register(Register request)
         {
             var user = await authRepository.RegisterAsync(request);
             if (user is null)

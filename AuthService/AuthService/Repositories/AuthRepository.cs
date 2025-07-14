@@ -12,53 +12,67 @@ using System.Text;
 
 namespace AuthService.Repositories
 {
-    public class AuthRepository(ApplicationDbContext context, IConfiguration configuration) : IAuthRepository
+    public class AuthRepository : IAuthRepository
     {
-        public async Task<TokenResponseDto?> LoginAsync(UserDto request)
-        {
-            var user = await context.Users.FirstOrDefaultAsync(u => u.UserName == request.Username);
-            if (user is null)
-            {
-                return null;
-            }
-            if (new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.Password) == PasswordVerificationResult.Failed)
-            {
-                return null;
-            }
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
+        private readonly IConfiguration _configuration;
+        private readonly IEmailService _emailService;
 
-            return await CreateTokenResponse(user);
+        public AuthRepository(
+            UserManager<User> userManager,
+            SignInManager<User> signInManager,
+            IConfiguration configuration,
+            IEmailService emailService)
+        {
+            _userManager = userManager;
+            _signInManager = signInManager;
+            _configuration = configuration;
+            _emailService = emailService;
         }
 
+        public async Task<User?> RegisterAsync(Register request)
+        {
+            var existingUser = await _userManager.FindByNameAsync(request.Username);
+            if (existingUser != null) return null;
+
+            var user = new User { UserName = request.Username, Email = request.Email };
+            var result = await _userManager.CreateAsync(user, request.Password);
+            return result.Succeeded ? user : null;
+        }
+
+        public async Task<TokenResponseDto?> LoginAsync(UserDto request)
+        {
+            var user = await _userManager.FindByNameAsync(request.Username);
+            if (user == null) return null;
+
+            var valid = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
+            return valid.Succeeded ? await CreateTokenResponse(user) : null;
+        }
+
+        public async Task<bool> ForgetPasswordAsync(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null) return false;
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            await SendResetEmailAsync(email, token);
+            return true;
+        }
+        private async Task<User?> ValidateRefreshTokenAsync(int userId, string refreshToken)
+        {
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null || user.RefreshToken != refreshToken || user.RefreshTokenExpiryTime <= DateTime.UtcNow) return null;
+            return user;
+        }
         private async Task<TokenResponseDto> CreateTokenResponse(User user)
         {
             return new TokenResponseDto
             {
-                AccessToken = CreateToken(user),
+                AccessToken = GenerateJWTToken(user),
                 RefreshToken = await GenerateAndSaveRefreshToken(user)
             };
         }
-
-        public async Task<User?> RegisterAsync(UserDto request)
-        {
-            if (await context.Users.AnyAsync(u => u.UserName == request.Username))
-            {
-                return null;
-            }
-
-            var user = new User();
-
-            var hashedPassword = new PasswordHasher<User>()
-                .HashPassword(user, request.Password);
-
-            user.UserName = request.Username;
-            user.PasswordHash = hashedPassword;
-
-            context.Users.Add(user);
-            await context.SaveChangesAsync();
-
-            return user;
-        }
-
         public async Task<TokenResponseDto?> RefreshTokenAsync(RefreshTokenRequestDto request)
         {
             var user = await ValidateRefreshTokenAsync(request.UserId, request.RefreshToken);
@@ -69,19 +83,6 @@ namespace AuthService.Repositories
 
             return await CreateTokenResponse(user);
         }
-
-        private async Task<User?> ValidateRefreshTokenAsync(Guid userId, string refreshToken)
-        {
-            var user = await context.Users.FindAsync(userId);
-            if (user is null || user.RefreshToken != refreshToken
-                || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
-            {
-                return null;
-            }
-
-            return user;
-        }
-
         private string GenerateRefreshToken()
         {
             var randomNumber = new byte[32];
@@ -95,11 +96,11 @@ namespace AuthService.Repositories
             var refreshToken = GenerateRefreshToken();
             user.RefreshToken = refreshToken;
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
-            await context.SaveChangesAsync();
+            await _userManager.UpdateAsync(user);
             return refreshToken;
         }
 
-        private string CreateToken(User user)
+        private string GenerateJWTToken(User user)
         {
             var claims = new List<Claim>
             {
@@ -109,13 +110,13 @@ namespace AuthService.Repositories
             };
 
             var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(configuration.GetValue<string>("AppSettings:Token")!));
+                Encoding.UTF8.GetBytes(_configuration.GetValue<string>("AppSettings:Token")!));
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
 
             var tokenDescriptor = new JwtSecurityToken(
-                issuer: configuration.GetValue<string>("AppSettings:Issuer"),
-                audience: configuration.GetValue<string>("AppSettings:Audience"),
+                issuer: _configuration.GetValue<string>("AppSettings:Issuer"),
+                audience: _configuration.GetValue<string>("AppSettings:Audience"),
                 claims: claims,
                 expires: DateTime.UtcNow.AddDays(1),
                 signingCredentials: creds
@@ -123,17 +124,12 @@ namespace AuthService.Repositories
 
             return new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
         }
-        public async Task<bool> ForgetPasswordAsync(string email)
+        private async Task SendResetEmailAsync(string email, string token)
         {
-            //var user = await FindUserByEmailAsync(email);
-            //if (user == null) return false;
-
-            //var resetToken = GeneratePasswordResetToken(user);
-            //await SendResetEmailAsync(email, resetToken);
-            return true;
+            var resetLink = $"https://your-app.com/reset-password?email={Uri.EscapeDataString(email)}&token={Uri.EscapeDataString(token)}";
+            var subject = "Password Reset";
+            var body = $"Click <a href='{resetLink}'>here</a> to reset your password.";
+            await _emailService.SendEmailAsync(email, subject, body);
         }
-        private string GeneratePasswordResetToken(object user) => "reset-token";
-        private Task SendResetEmailAsync(string email, string token) => Task.CompletedTask;
-
     }
 }
