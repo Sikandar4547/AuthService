@@ -12,56 +12,93 @@ namespace AuthService.Controllers
     public class AuthController(IAuthRepository authRepository) : ControllerBase
     {
         [HttpPost("register")]
-        public async Task<ActionResult<User>> Register(Register request)
+        public async Task<ActionResult<ApiResponseDto<TokenResponseDto>>> Register(Register request)
         {
-            var user = await authRepository.RegisterAsync(request);
-            if (user is null)
-                return BadRequest("Username already exists.");
-
-            return Ok(user);
+            RepositoryResultDto<TokenResponseDto> result = await authRepository.RegisterAsync(request);
+            var response = new ApiResponseDto<TokenResponseDto>
+            {
+                StatusCode = result.ErrorMessage == null ? ApiStatusCode.OK : ApiStatusCode.BadRequest,
+                ErrorMessage = result.ErrorMessage,
+                SuccessMessage = result.SuccessMessage,
+                Data = result.Data
+            };
+            return result.ErrorMessage == null ? Ok(response) : BadRequest(response);
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<TokenResponseDto>> Login(UserDto request)
+        public async Task<ActionResult<ApiResponseDto<TokenResponseDto>>> Login(UserDto request)
         {
             var result = await authRepository.LoginAsync(request);
-            if (result is null)
-                return BadRequest("Invalid username or password.");
-
-            return Ok(result);
+            var response = new ApiResponseDto<TokenResponseDto>
+            {
+                StatusCode = result == null ? ApiStatusCode.BadRequest : ApiStatusCode.OK,
+                ErrorMessage = result == null ? "Invalid username or password." : null,
+                SuccessMessage = result != null ? "Login successful." : null,
+                Data = result
+            };
+            return result == null ? BadRequest(response) : Ok(response);
         }
 
         [HttpPost("refresh-token")]
-        public async Task<ActionResult<TokenResponseDto>> RefreshToken(RefreshTokenRequestDto request)
+        public async Task<ActionResult<ApiResponseDto<TokenResponseDto>>> RefreshToken(RefreshTokenRequestDto request)
         {
             var result = await authRepository.RefreshTokenAsync(request);
-            if (result is null || result.AccessToken is null || result.RefreshToken is null)
-                return Unauthorized("Invalid refresh token.");
-
-            return Ok(result);
+            var response = new ApiResponseDto<TokenResponseDto>
+            {
+                StatusCode = (result == null || result.AccessToken == null || result.RefreshToken == null)
+                    ? ApiStatusCode.Unauthorized
+                    : ApiStatusCode.OK,
+                ErrorMessage = (result == null || result.AccessToken == null || result.RefreshToken == null)
+                    ? "Invalid refresh token."
+                    : null,
+                SuccessMessage = (result != null && result.AccessToken != null && result.RefreshToken != null)
+                    ? "Token refreshed."
+                    : null,
+                Data = result
+            };
+            return (result == null || result.AccessToken == null || result.RefreshToken == null)
+                ? Unauthorized(response)
+                : Ok(response);
         }
 
         [HttpPost("forget-password")]
-        public async Task<IActionResult> ForgetPassword([FromBody] string email)
+        public async Task<ActionResult<ApiResponseDto<object>>> ForgetPassword([FromBody] string email)
         {
             var result = await authRepository.ForgetPasswordAsync(email);
-            if (!result)
-                return NotFound("User not found");
-            return Ok("Password reset instructions sent to your email.");
+            var response = new ApiResponseDto<object>
+            {
+                StatusCode = result ? ApiStatusCode.OK : ApiStatusCode.NotFound,
+                ErrorMessage = result ? null : "User not found",
+                SuccessMessage = result ? "Password reset instructions sent to your email." : null,
+                Data = null
+            };
+            return result ? Ok(response) : NotFound(response);
         }
 
         [Authorize]
         [HttpGet]
-        public IActionResult AuthenticatedOnlyEndpoint()
+        public ActionResult<ApiResponseDto<string>> AuthenticatedOnlyEndpoint()
         {
-            return Ok("You are authenticated!");
+            var response = new ApiResponseDto<string>
+            {
+                StatusCode = ApiStatusCode.OK,
+                SuccessMessage = "You are authenticated!",
+                Data = "You are authenticated!"
+            };
+            return Ok(response);
         }
 
-        [Authorize(Roles = "Admin")] // "Admin,User, etc."
+        [Authorize(Roles = "Admin")]
         [HttpGet("admin-only")]
-        public IActionResult AdminOnlyEndpoint()
+        public ActionResult<ApiResponseDto<string>> AdminOnlyEndpoint()
         {
-            return Ok("You are an admin!");
+            var response = new ApiResponseDto<string>
+            {
+                StatusCode = ApiStatusCode.OK,
+                SuccessMessage = "You are an admin!",
+                Data = "You are an admin!"
+            };
+            return Ok(response);
         }
     }
 }

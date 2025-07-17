@@ -31,14 +31,29 @@ namespace AuthService.Repositories
             _emailService = emailService;
         }
 
-        public async Task<User?> RegisterAsync(Register request)
+        public async Task<RepositoryResultDto<TokenResponseDto>> RegisterAsync(Register request)
         {
             var existingUser = await _userManager.FindByNameAsync(request.Username);
-            if (existingUser != null) return null;
+            if (existingUser != null)
+                return new RepositoryResultDto<TokenResponseDto>
+                {
+                    ErrorMessage = "Username already exists."
+                };
 
             var user = new User { UserName = request.Username, Email = request.Email };
             var result = await _userManager.CreateAsync(user, request.Password);
-            return result.Succeeded ? user : null;
+            if (!result.Succeeded)
+                return new RepositoryResultDto<TokenResponseDto>
+                {
+                    ErrorMessage = "Registration failed."
+                };
+
+            var tokenResponse = await CreateTokenResponse(user);
+            return new RepositoryResultDto<TokenResponseDto>
+            {
+                Data = tokenResponse,
+                SuccessMessage = "Registration successful."
+            };
         }
 
         public async Task<TokenResponseDto?> LoginAsync(UserDto request)
